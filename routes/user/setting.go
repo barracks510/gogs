@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html/template"
 	"image/png"
+	"io"
 	"io/ioutil"
 	"strings"
 
@@ -111,7 +112,6 @@ func SettingsPost(c *context.Context, f form.UpdateProfile) {
 	c.SubURLRedirect("/user/settings")
 }
 
-// FIXME: limit size.
 func UpdateAvatarSetting(c *context.Context, f form.Avatar, ctxUser *models.User) error {
 	ctxUser.UseCustomAvatar = f.Source == form.AVATAR_LOCAL
 	if len(f.Gravatar) > 0 {
@@ -126,7 +126,7 @@ func UpdateAvatarSetting(c *context.Context, f form.Avatar, ctxUser *models.User
 		}
 		defer r.Close()
 
-		data, err := ioutil.ReadAll(r)
+		data, err := ioutil.ReadAll(io.LimitReader(r, 10*1024*1024))
 		if err != nil {
 			return fmt.Errorf("ioutil.ReadAll: %v", err)
 		}
